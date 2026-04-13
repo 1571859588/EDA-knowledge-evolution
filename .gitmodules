@@ -6,4 +6,4 @@
 	url = https://github.com/lesliepy99/RAG-EDA.git
 [submodule "baselines/naive_rag"]
 	path = baselines/naive_rag
-	url = https://github.com/huggingface/transformers.git
+	url = git@github.com:1571859588/NavieRAG.git

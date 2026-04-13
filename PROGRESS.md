@@ -10,7 +10,7 @@
 ## 2. 目录结构说明
 - `baselines/` : 存放所有对比基线的Git子仓库（Submodules）。
   - `graphrag/` : 引入的GraphRAG公共实现仓库。
-  - `naive_rag/` : 引入了 Hugging Face transformers 官方仓库（其 examples/rag 为最权威的传统 RAG 基带代码）。
+  - `naive_rag/` : 自建的 NavieRAG 库，包含完整的首尾流：文档剛切(Chunker) → Embedding → FAISS检索 → LLM生成，以及针对 ORD-QA 的评估脚本。
 - `benchmarks/` : 存放各类评测集及对应的基准测评数据集。
   - `ORD-QA/` : OpenROAD QA官方开源库，作为核心EDA评测集资源。
 - `survey/` : 存放早期的学术调研文档和架构设计思路。
@@ -25,6 +25,6 @@
 | 2026-04-13 | main | `first commit` | 项目初始化。完成课题初期调研（`survey/`），确立初步架构与基线选型（ORD-QA）。接入Git版本控制。 |
 | 2026-04-13 | main | `add graphrag submodule` | 引入 GraphRAG 开源仓库作为子模块基线，调整基线选取策略为利用现有成熟库以降低造轮子成本。 |
 | 2026-04-13 | main | `add ord-qa dataset` | 在 benchmarks/ 目录下引入了 ORD-QA (RAG-EDA) 官方开源仓库作为子模块。 |
-| 2026-04-13 | main | `add naive rag submodule` | 在 baselines/ 目录下通过深度克隆引入了 Transformers 官方仓库作为传统 RAG 的参考实现库。 |
+| 2026-04-13 | main | `add naive rag submodule` | 删除过大的 Transformers 子模块，自建精简版 NavieRAG 并推送到 NavieRAG.git，再以新子模块形式挂载入主仓。 |
 ---
 *注：请在每次阶段性突破或向远端推送（Push）前，更新此文档以追踪科研历程。*
