@@ -1,3 +1,6 @@
 [submodule "baselines/graphrag"]
 	path = baselines/graphrag
 	url = git@github.com:1571859588/graphrag.git
+[submodule "benchmarks/ORD-QA"]
+	path = benchmarks/ORD-QA
+	url = https://github.com/lesliepy99/RAG-EDA.git
