@@ -1,104 +1,83 @@
 # eval/ — 统一实验入口
 
-本目录是 **EDA-knowledge-evolution** 项目的统一评测中心。  
 所有参数调整在此处完成，**无需直接改动子仓库代码**。
-
----
 
 ## 目录结构
 
 ```
 eval/
-├── configs/
-│   ├── naive_rag_config.yaml       ← NavieRAG 配置（唯一修改入口）
-│   └── graphrag_config.yml         ← GraphRAG 配置（唯一修改入口）
-├── run_naive_rag_ingest.sh/.ps1    ← 索引 ORD-QA 文档（NavieRAG）
-├── run_naive_rag_eval.sh/.ps1      ← 运行 NavieRAG × ORD-QA 评估
-├── run_graphrag_ingest.sh/.ps1     ← 索引 ORD-QA 文档（GraphRAG）
-├── run_graphrag_local_eval.sh/.ps1 ← 运行 GraphRAG Local × ORD-QA 评估
-├── run_graphrag_global_eval.sh/.ps1← 运行 GraphRAG Global × ORD-QA 评估
-├── run_all_eval.sh/.ps1            ← 串行跑所有 baseline 评估，汇总对比
-└── README.md                       ← 本文件
+├── naive_rag/
+│   ├── config.yaml             ← NavieRAG 配置（唯一修改入口）
+│   ├── run_ingest.sh/.ps1      ← 索引 ORD-QA 文档
+│   ├── run_eval.sh/.ps1        ← 运行评估
+│   └── results.json            ← 评估结果（运行后生成，不入库）
+├── graphrag/
+│   ├── config.yml              ← GraphRAG 配置（唯一修改入口）
+│   ├── run_ingest.sh/.ps1      ← 索引 ORD-QA 文档（触发 graphrag index）
+│   ├── run_local_eval.sh/.ps1  ← GraphRAG Local 评估
+│   ├── run_global_eval.sh/.ps1 ← GraphRAG Global 评估
+│   ├── results_local.json      ← 评估结果（运行后生成，不入库）
+│   └── results_global.json
+├── run_all_eval.sh/.ps1        ← 一键串行跑所有 baseline + 打印对比表
+└── README.md
 ```
 
----
+## 工作流
 
-## 快速上手
+### 1. 修改参数（只在此处改）
 
-### 1. 设置环境变量 / API Key
+| 要调整的内容 | 编辑文件 |
+|---|---|
+| NavieRAG 模型、Embedding、Chunk、Top-K | `eval/naive_rag/config.yaml` |
+| GraphRAG 实体类型、社区参数、查询 LLM | `eval/graphrag/config.yml` |
+
+### 2. 建立索引（首次或文档更新后执行一次）
 
 ```bash
-# Linux / Git Bash
-export OPENAI_API_KEY="sk-xxxxx"
-export OPENAI_API_BASE="https://api.openai.com/v1"   # 或其他兼容端点
-export GRAPHRAG_API_KEY="sk-xxxxx"
-export GRAPHRAG_API_BASE="https://api.openai.com/v1"
+# Linux / Git Bash（从项目根目录）
+bash eval/naive_rag/run_ingest.sh
+bash eval/graphrag/run_ingest.sh
 ```
 
 ```powershell
-# Windows PowerShell
-$env:OPENAI_API_KEY   = "sk-xxxxx"
-$env:OPENAI_API_BASE  = "https://api.openai.com/v1"
-$env:GRAPHRAG_API_KEY = "sk-xxxxx"
-$env:GRAPHRAG_API_BASE = "https://api.openai.com/v1"
+# Windows PowerShell（从项目根目录）
+.\eval\naive_rag\run_ingest.ps1
+.\eval\graphrag\run_ingest.ps1
 ```
 
-### 2. 修改配置（仅在此处改，无需动子仓库）
-
-- 调整模型、Chunk 大小、Top-K 等参数 → 编辑 `eval/configs/naive_rag_config.yaml`
-- 调整 GraphRAG 实体类型、社区大小、查询参数 → 编辑 `eval/configs/graphrag_config.yml`
-
-### 3. 索引文档（首次或文档更新后）
-
-```bash
-# Linux / Git Bash
-bash eval/run_naive_rag_ingest.sh
-bash eval/run_graphrag_ingest.sh
-
-# Windows PowerShell
-.\eval\run_naive_rag_ingest.ps1
-.\eval\run_graphrag_ingest.ps1
-```
-
-### 4. 运行评估
+### 3. 运行评估
 
 ```bash
 # 单独运行
-bash eval/run_naive_rag_eval.sh
-bash eval/run_graphrag_local_eval.sh
-bash eval/run_graphrag_global_eval.sh
+bash eval/naive_rag/run_eval.sh
+bash eval/graphrag/run_local_eval.sh
+bash eval/graphrag/run_global_eval.sh
 
-# 一键跑全部 baseline
+# 一键跑全部 + 打印对比表格
 bash eval/run_all_eval.sh
 ```
 
 ```powershell
-# Windows PowerShell 单独运行
-.\eval\run_naive_rag_eval.ps1
-.\eval\run_graphrag_local_eval.ps1
+.\eval\naive_rag\run_eval.ps1
+.\eval\graphrag\run_local_eval.ps1
+.\eval\graphrag\run_global_eval.ps1
 
-# 一键跑全部
 .\eval\run_all_eval.ps1
 ```
 
-### 5. 查看结果
+### 4. 可选环境变量（覆盖默认参数）
 
-评估完成后，结果文件默认输出到：
-
-| Baseline | 结果文件 |
+| 变量 | 作用 |
 |---|---|
-| NavieRAG | `eval/results/naive_rag_results.json` |
-| GraphRAG Local | `eval/results/graphrag_local_results.json` |
-| GraphRAG Global | `eval/results/graphrag_global_results.json` |
+| `TOP_K` | 覆盖 NavieRAG 的 top_k 检索数量 |
+| `QUESTION_TYPES` | 只评估指定类型（如 `functionality,vlsi_flow`） |
+| `MAX_SAMPLES` | 限制样本数（调试用，如 `10`） |
+| `OPENAI_API_KEY` | OpenAI 兼容 API 密钥 |
+| `GRAPHRAG_API_KEY` | GraphRAG API 密钥 |
 
----
+## 原理
 
-## 原理说明
-
-每个 `.sh` / `.ps1` 脚本的工作流程：
-
-1. **`cp`** — 将 `eval/configs/` 下对应的配置文件复制覆盖到子仓库的 `eda_eval/` 目录
-2. **`cd`** — 切换到对应子仓库目录（部分脚本需要在子仓库根目录运行以保证相对路径正确）
-3. **`uv run python`** — 执行索引或评估脚本
-
-> ⚠️ 每次运行脚本时，`eval/configs/` 中的配置会**覆盖**子仓库中的配置文件。因此，请始终在 `eval/configs/` 中进行修改，不要直接修改子仓库中的配置文件。
+每个脚本运行时：
+1. `cp` 本目录的 config 文件 **覆盖** 子仓库的 `eda_eval/config_ordqa*`
+2. `cd` 到子仓库目录后执行 `uv run python eda_eval/xxx.py`
+3. 结果 JSON 写回本目录（`results*.json`）

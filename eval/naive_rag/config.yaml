@@ -1,11 +1,10 @@
 # =============================================================================
 # NavieRAG EDA 场景配置（ORD-QA 评估专用）
-# 用法：ingest_ordqa.py 和 evaluate_ordqa.py 读取此文件，覆盖根目录 config.yaml 的默认参数。
+# 此处是唯一修改入口，脚本运行时会自动 cp 覆盖到子仓库 eda_eval/
 # =============================================================================
 
 # ── LLM（生成阶段） ────────────────────────────────────────────────────────────
 llm:
-  # 从环境变量读取，也可以直接填写字符串
   api_base: "${OPENAI_API_BASE:https://api.openai.com/v1}"
   api_key:  "${OPENAI_API_KEY:}"
   model:    "gpt-4o-mini"      # 推荐：gpt-4o-mini（成本低）或 gpt-4o（质量高）
@@ -18,16 +17,14 @@ embedding:
   device: "cpu"                # GPU 可改为 "cuda"
 
 # ── 文档切块 ──────────────────────────────────────────────────────────────────
-# ORD-QA 的 openroad_documentation.json 已是预切好的 chunk，
-# 这里的参数只在 chunk 内容过长时才会二次分割。
 chunking:
-  chunk_size:    800   # 每块最大字符数（稍大，保留完整 Tcl 代码块）
+  chunk_size:    800
   chunk_overlap: 100
 
 # ── 检索 ──────────────────────────────────────────────────────────────────────
 retrieval:
-  top_k:     5           # 返回 Top-K 个最相近的 chunk
-  index_dir: "eda_eval/index"   # FAISS 索引存储路径（相对于项目根目录）
+  top_k:     5
+  index_dir: "eda_eval/index"
 
 # ── 生成提示词模板 ─────────────────────────────────────────────────────────────
 prompt_template: |

@@ -1,0 +1,71 @@
+# =============================================================================
+# GraphRAG EDA 场景配置（ORD-QA 评估专用）
+# 此处是唯一修改入口，脚本运行时会自动 cp 覆盖到子仓库 eda_eval/
+# =============================================================================
+
+llm:
+  api_key: ${GRAPHRAG_API_KEY}
+  api_base: ${GRAPHRAG_API_BASE:https://api.openai.com/v1}
+  model: gpt-4o-mini
+  model_supports_json: true
+  max_tokens: 4096
+  temperature: 0.0
+  request_timeout: 180.0
+  max_retries: 5
+  concurrent_requests: 4
+
+query_llm:
+  model: gpt-4o
+  temperature: 0.0
+  max_tokens: 2048
+
+embeddings:
+  llm:
+    api_key: ${GRAPHRAG_API_KEY}
+    api_base: ${GRAPHRAG_API_BASE:https://api.openai.com/v1}
+    model: text-embedding-3-small
+    max_retries: 5
+
+chunks:
+  size: 600
+  overlap: 100
+  group_by_columns: [id]
+
+entity_extraction:
+  max_gleanings: 1
+  entity_types:
+    - EDA_tool
+    - EDA_command
+    - EDA_stage
+    - EDA_parameter
+    - EDA_concept
+    - EDA_file_format
+
+cluster_graph:
+  max_cluster_size: 8
+
+summarize_descriptions:
+  max_length: 512
+
+community_reports:
+  max_length: 2048
+  max_input_length: 8192
+
+local_search:
+  text_unit_prop: 0.5
+  community_prop: 0.1
+  conversation_history_max_turns: 3
+  top_k_entities: 10
+  top_k_relationships: 10
+  max_tokens: 12000
+
+global_search:
+  max_tokens: 12000
+  data_max_tokens: 12000
+  map_max_tokens: 1000
+  reduce_max_tokens: 2000
+  concurrency: 4
+
+storage:
+  type: file
+  base_dir: output
