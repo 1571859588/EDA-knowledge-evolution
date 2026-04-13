@@ -26,7 +26,8 @@
 | 2026-04-13 | main | `add graphrag submodule` | 引入 GraphRAG 开源仓库作为子模块基线，调整基线选取策略为利用现有成熟库以降低造轮子成本。 |
 | 2026-04-13 | main | `add ord-qa dataset` | 在 benchmarks/ 目录下引入了 ORD-QA (RAG-EDA) 官方开源仓库作为子模块。 |
 | 2026-04-13 | main | `add naive rag submodule` | 删除过大的 Transformers 子模块，自建精简版 NavieRAG 并推送到 NavieRAG.git，再以新子模块形式挂载入主仓。 |
-| 2026-04-13 | graphrag/EDAAgentMemory | `feat: add ORD-QA evaluation suite` | 在 `baselines/graphrag/eda_eval/` 下新增 GraphRAG × ORD-QA 完整评估套件：索引脚本 `ingest_ordqa.py`、EDA 专属配置 `config_ordqa.yml`、评估脚本 `evaluate_ordqa.py`（BLEU/ROUGE-L/BERTScore/Recall@K）以及中文使用指引 `USAGE.md`。 |
+| 2026-04-13 | graphrag/EDAAgentMemory | `feat: add ORD-QA evaluation suite` | 在 `baselines/graphrag/eda_eval/` 下新增 GraphRAG × ORD-QA 完整评估套件：索引脚本、EDA 配置、评估脚本（BLEU/ROUGE-L/BERTScore/Recall@K）及中文 USAGE.md。 |
+| 2026-04-13 | naive_rag/EDAAgentMemory | `feat: add ORD-QA evaluation suite` | 在 `baselines/naive_rag/eda_eval/` 下对称新增 NavieRAG × ORD-QA 完整评估套件：`ingest_ordqa.py`（读取 openroad_documentation.json 建 FAISS 索引）、`config_ordqa.yaml`、`evaluate_ordqa.py`（含按问题类型细分统计）及中文 USAGE.md。 |
 
 ---
 *注：请在每次阶段性突破或向远端推送（Push）前，更新此文档以追踪科研历程。*
