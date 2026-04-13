@@ -10,7 +10,11 @@
 ## 2. 目录结构说明
 - `baselines/` : 存放所有对比基线的Git子仓库（Submodules）。
   - `graphrag/` : 引入的GraphRAG公共实现仓库。
-  - `naive_rag/` : 自建的 NavieRAG 库，包含完整的首尾流：文档剛切(Chunker) → Embedding → FAISS检索 → LLM生成，以及针对 ORD-QA 的评估脚本。
+  - `naive_rag/` : 自建的 NavieRAG 库，包含完整复现流。
+- `eval/` : **统一评测中心**，所有参数调整均在此完成，无需修改子仓库。
+  - `configs/` : 各 Baseline 的配置文件（唯一修改入口）。
+  - `run_*.sh` / `run_*.ps1` : 自动同步配置并执行对应子仓库的评估脚本。
+  - `run_all_eval.*` : 一键托跟所有 Baseline 并打印对比表格。
 - `benchmarks/` : 存放各类评测集及对应的基准测评数据集。
   - `ORD-QA/` : OpenROAD QA官方开源库，作为核心EDA评测集资源。
 - `survey/` : 存放早期的学术调研文档和架构设计思路。
@@ -28,6 +32,7 @@
 | 2026-04-13 | main | `add naive rag submodule` | 删除过大的 Transformers 子模块，自建精简版 NavieRAG 并推送到 NavieRAG.git，再以新子模块形式挂载入主仓。 |
 | 2026-04-13 | graphrag/EDAAgentMemory | `feat: add ORD-QA evaluation suite` | 在 `baselines/graphrag/eda_eval/` 下新增 GraphRAG × ORD-QA 完整评估套件：索引脚本、EDA 配置、评估脚本（BLEU/ROUGE-L/BERTScore/Recall@K）及中文 USAGE.md。 |
 | 2026-04-13 | naive_rag/EDAAgentMemory | `feat: add ORD-QA evaluation suite` | 在 `baselines/naive_rag/eda_eval/` 下对称新增 NavieRAG × ORD-QA 完整评估套件：`ingest_ordqa.py`（读取 openroad_documentation.json 建 FAISS 索引）、`config_ordqa.yaml`、`evaluate_ordqa.py`（含按问题类型细分统计）及中文 USAGE.md。 |
+| 2026-04-13 | main | `feat: add eval/ unified runner` | 新增 `eval/` 统一评测中心：配置文件集中于 `eval/configs/`，提供 `.sh`（Git Bash/Linux）和 `.ps1`（Windows PowerShell）双版本运行脚本，自动同步配置并调用各 Baseline 的鼨建/评估脚本，`run_all_eval` 一键串行跑完并打印指标对比表格。 |
 
 ---
 *注：请在每次阶段性突破或向远端推送（Push）前，更新此文档以追踪科研历程。*
