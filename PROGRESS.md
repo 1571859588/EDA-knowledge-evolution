@@ -3,13 +3,14 @@
 本项目主要记录多Agent跨领域知识自进化的研究进展、文件结构说明以及每次版本的演进历史。
 
 ## 1. 核心选型说明
-- **Baseline选型**: 确定使用最主流的传统 **Naive RAG** 和 **GraphRAG** 作为对比基线。为避免重复造轮子，直接通过 Git Submodule 引入相关的开源实现库（目前已引入 GraphRAG 子模块）。用以凸显我们的多Agent在认知进化上的优势。
+- **Baseline选型**: 确定使用最主流的传统 **Naive RAG** 和 **GraphRAG** 作为对比基线。为避免重复造轮子，直接通过 Git Submodule 引入相关的开源实现库（目前已引入 GraphRAG 和基于 Hugging Face Transformers 的官方 Naive RAG 作为子模块）。用以凸显我们的多Agent在认知进化上的优势。
 - **核心架构思路**: 选择**Memory-Augmented Multi-Agent**作为主要创新。通过设计Reader Agent、Practitioner Agent、Solver Agent角色分离的方式，配合工作记忆(Working)、语义记忆(Semantic)与情景记忆(Episodic)，完成从概念摄入到排坑实战的学习流。
 - **Benchmark选择**: 选择 **ORD-QA** (OpenROAD QA) 作为首选评测基准。ORD-QA专注于开源EDA工具流的使用问答，极其契合“查阅文档 -> 运行基础流 -> 回答复杂应用任务”的情景设定。
 
 ## 2. 目录结构说明
 - `baselines/` : 存放所有对比基线的Git子仓库（Submodules）。
   - `graphrag/` : 引入的GraphRAG公共实现仓库。
+  - `naive_rag/` : 引入了 Hugging Face transformers 官方仓库（其 examples/rag 为最权威的传统 RAG 基带代码）。
 - `benchmarks/` : 存放各类评测集及对应的基准测评数据集。
   - `ORD-QA/` : OpenROAD QA官方开源库，作为核心EDA评测集资源。
 - `survey/` : 存放早期的学术调研文档和架构设计思路。
@@ -24,5 +25,6 @@
 | 2026-04-13 | main | `first commit` | 项目初始化。完成课题初期调研（`survey/`），确立初步架构与基线选型（ORD-QA）。接入Git版本控制。 |
 | 2026-04-13 | main | `add graphrag submodule` | 引入 GraphRAG 开源仓库作为子模块基线，调整基线选取策略为利用现有成熟库以降低造轮子成本。 |
 | 2026-04-13 | main | `add ord-qa dataset` | 在 benchmarks/ 目录下引入了 ORD-QA (RAG-EDA) 官方开源仓库作为子模块。 |
+| 2026-04-13 | main | `add naive rag submodule` | 在 baselines/ 目录下通过深度克隆引入了 Transformers 官方仓库作为传统 RAG 的参考实现库。 |
 ---
 *注：请在每次阶段性突破或向远端推送（Push）前，更新此文档以追踪科研历程。*

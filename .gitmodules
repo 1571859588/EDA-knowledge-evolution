@@ -4,3 +4,6 @@
 [submodule "benchmarks/ORD-QA"]
 	path = benchmarks/ORD-QA
 	url = https://github.com/lesliepy99/RAG-EDA.git
+[submodule "baselines/naive_rag"]
+	path = baselines/naive_rag
+	url = https://github.com/huggingface/transformers.git
