@@ -1,0 +1,3 @@
+[submodule "baselines/graphrag"]
+	path = baselines/graphrag
+	url = git@github.com:1571859588/graphrag.git
