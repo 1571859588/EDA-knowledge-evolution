@@ -37,8 +37,24 @@ from ours.memory.episodic_memory import EpisodicMemory
 # ── 文档加载 ──────────────────────────────────────────────────────────────────
 
 def load_documentation(doc_json: str) -> list[dict]:
+    """载入 openroad_documentation.json，返回展平后的 chunk 列表。
+
+    ORD-QA 标准格式：[{source, amount, knowledge: [{id, content, summary}]}]
+    展平后每个 chunk：{"id": str, "content": str}
+    """
     with open(doc_json, encoding="utf-8") as f:
         raw = json.load(f)
+
+    if isinstance(raw, list) and raw and "knowledge" in raw[0]:
+        # ORD-QA 嵌套格式：source → knowledge[]
+        chunks = []
+        for source_obj in raw:
+            for k in source_obj.get("knowledge", []):
+                chunks.append({
+                    "id": k.get("id", ""),
+                    "content": k.get("content", ""),
+                })
+        return chunks
     if isinstance(raw, list):
         return [
             {"id": str(item.get("id", f"chunk_{i}")),
@@ -86,37 +102,18 @@ def build_episodic_index(
     chunks: list[dict],
     config: dict,
 ) -> EpisodicMemory:
-    """将文档 chunk 编码为向量，构建 FAISS + BM25 双索引。"""
+    """将文档 chunk 直接编码为向量，构建 FAISS + BM25 双索引。
+
+    ORD-QA 的 chunk 已按标准粒度预切好，不再进行二次切割。
+    """
     embedder = make_embedder(config)
 
-    # 二次切片（如有超长 chunk）
-    ep_cfg = config.get("episodic_memory", {})
-    chunk_size = ep_cfg.get("chunk_size", 600)
-    chunk_overlap = ep_cfg.get("chunk_overlap", 80)
+    print(f"[VectorDB] 共 {len(chunks)} 个预切 chunk（保持原始粒度）。")
 
-    all_chunks = []
-    for c in chunks:
-        text = c["content"]
-        if len(text) <= chunk_size:
-            all_chunks.append(c)
-        else:
-            start = 0
-            sub_idx = 0
-            while start < len(text):
-                end = min(start + chunk_size, len(text))
-                all_chunks.append({
-                    "id": f"{c['id']}__sub{sub_idx}",
-                    "content": text[start:end],
-                })
-                sub_idx += 1
-                start += chunk_size - chunk_overlap
-
-    print(f"[VectorDB] 切片后共 {len(all_chunks)} 个 chunk。")
-
-    texts = [c["content"] for c in all_chunks]
+    texts = [c["content"] for c in chunks]
     meta_list = [
         {"text": c["content"], "source": c["id"]}
-        for c in all_chunks
+        for c in chunks
     ]
 
     print("[VectorDB] 编码文档向量...")
