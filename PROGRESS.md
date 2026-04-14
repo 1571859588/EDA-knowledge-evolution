@@ -11,10 +11,15 @@
 - `baselines/` : 存放所有对比基线的Git子仓库（Submodules）。
   - `graphrag/` : 引入的GraphRAG公共实现仓库。
   - `naive_rag/` : 自建的 NavieRAG 库，包含完整复现流。
+- `ours/` : **核心方法 TPMA（Tri-Polar Memory Architecture）**。
+  - `memory/` : 三极记忆层（语义KG、情景VectorDB、工作记忆Prompt组装）。
+  - `agents/` : 四阶段Agent（实体抽取、查询扩展、双路召回、Cross-Encoder精筛）。
+  - `pipeline.py` / `solver.py` : 端到端推理编排与最终生成。
+  - `build_knowledge.py` : 一键构建底层KG + 中层向量索引。
+  - `evaluate_ordqa.py` : ORD-QA 评估脚本（与 Baseline 指标完全对齐）。
 - `eval/` : **统一评测中心**，所有参数调整均在此完成，无需修改子仓库。
-  - `configs/` : 各 Baseline 的配置文件（唯一修改入口）。
-  - `run_*.sh` / `run_*.ps1` : 自动同步配置并执行对应子仓库的评估脚本。
-  - `run_all_eval.*` : 一键托跟所有 Baseline 并打印对比表格。
+  - `naive_rag/` / `graphrag/` / `tpma/` : 各方法的配置和运行脚本。
+  - `run_all_eval.*` : 一键串行跑所有方法并打印对比表格。
 - `benchmarks/` : 存放各类评测集及对应的基准测评数据集。
   - `ORD-QA/` : OpenROAD QA官方开源库，作为核心EDA评测集资源。
 - `survey/` : 存放早期的学术调研文档和架构设计思路。
@@ -32,7 +37,8 @@
 | 2026-04-13 | main | `add naive rag submodule` | 删除过大的 Transformers 子模块，自建精简版 NavieRAG 并推送到 NavieRAG.git，再以新子模块形式挂载入主仓。 |
 | 2026-04-13 | graphrag/EDAAgentMemory | `feat: add ORD-QA evaluation suite` | 在 `baselines/graphrag/eda_eval/` 下新增 GraphRAG × ORD-QA 完整评估套件：索引脚本、EDA 配置、评估脚本（BLEU/ROUGE-L/BERTScore/Recall@K）及中文 USAGE.md。 |
 | 2026-04-13 | naive_rag/EDAAgentMemory | `feat: add ORD-QA evaluation suite` | 在 `baselines/naive_rag/eda_eval/` 下对称新增 NavieRAG × ORD-QA 完整评估套件：`ingest_ordqa.py`（读取 openroad_documentation.json 建 FAISS 索引）、`config_ordqa.yaml`、`evaluate_ordqa.py`（含按问题类型细分统计）及中文 USAGE.md。 |
-| 2026-04-13 | main | `feat: add eval/ unified runner` | 新增 `eval/` 统一评测中心：配置文件集中于 `eval/configs/`，提供 `.sh`（Git Bash/Linux）和 `.ps1`（Windows PowerShell）双版本运行脚本，自动同步配置并调用各 Baseline 的鼨建/评估脚本，`run_all_eval` 一键串行跑完并打印指标对比表格。 |
+| 2026-04-13 | main | `feat: add eval/ unified runner` | 新增 `eval/` 统一评测中心，分层目录结构（`naive_rag/`、`graphrag/`），配置文件集中管理。 |
+| 2026-04-14 | main | `feat: add TPMA (ours/)` | 实现三极记忆层级架构（Tri-Polar Memory Architecture）：底层语义记忆（NetworkX KG，LLM 抽取三元组）、中层情景记忆（FAISS Dense + BM25 Sparse + RRF 融合）、表层工作记忆（结构化 Prompt 组装）。四阶段推理 Pipeline：实体抽取→查询重构→双路召回→Cross-Encoder 精筛。含 `build_knowledge.py`、`evaluate_ordqa.py`、`eval/tpma/` 统一入口。 |
 
 ---
 *注：请在每次阶段性突破或向远端推送（Push）前，更新此文档以追踪科研历程。*

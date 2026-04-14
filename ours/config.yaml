@@ -1,0 +1,126 @@
+# =============================================================================
+# Tri-Polar Memory Architecture (TPMA) — 统一配置
+# =============================================================================
+
+# ── LLM（实体抽取、查询扩展、最终生成共用） ───────────────────────────────────
+llm:
+  api_base: "${OPENAI_API_BASE:https://api.openai.com/v1}"
+  api_key: "${OPENAI_API_KEY:}"
+  model: "gpt-4o-mini"
+  temperature: 0.0
+  max_tokens: 2048
+
+# ── 知识图谱构建用 LLM（需要更强的抽取能力，可用更强模型） ─────────────────────
+kg_builder_llm:
+  model: "gpt-4o-mini"
+  temperature: 0.0
+  max_tokens: 4096
+
+# ── Embedding 模型 ─────────────────────────────────────────────────────────────
+embedding:
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"
+  device: "cpu"          # GPU 可改为 "cuda"
+
+# ── Cross-Encoder 重排序模型 ───────────────────────────────────────────────────
+reranker:
+  model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+  device: "cpu"
+  score_threshold: 0.3   # 低于此分数的候选被丢弃
+  top_k: 5               # 精筛后保留的最大文档数
+
+# ── 底层语义记忆（知识图谱）构建参数 ──────────────────────────────────────────
+semantic_memory:
+  kg_path: "ours/knowledge_store/semantic_kg.json"
+  entity_types:
+    - EDA_tool
+    - EDA_command
+    - EDA_stage
+    - EDA_parameter
+    - EDA_concept
+    - EDA_file_format
+    - Tcl_command
+  relation_types:
+    - BELONGS_TO        # command → tool
+    - USED_IN           # command → stage
+    - HAS_PARAMETER     # command → parameter
+    - DEPENDS_ON        # concept → concept
+    - EXAMPLE_OF        # example → concept
+    - PREREQUISITE_OF   # concept → concept
+    - PRODUCES          # command → output
+  max_hops: 2           # 图检索时的跳数
+
+# ── 中层情景记忆（向量索引）构建参数 ──────────────────────────────────────────
+episodic_memory:
+  index_dir: "ours/knowledge_store/episodic_index"
+  chunk_size: 600
+  chunk_overlap: 80
+
+# ── 双路召回参数 ──────────────────────────────────────────────────────────────
+retrieval:
+  dense_top_k: 20       # Dense Retrieval 召回数
+  sparse_top_k: 20      # BM25 召回数
+  hybrid_top_k: 20      # RRF 融合后保留数
+  rrf_k: 60             # RRF 常数 (标准值 60)
+  alpha: 0.6            # Dense 权重 (1-alpha 为 Sparse 权重)
+
+# ── 工作记忆 Prompt 模板 ──────────────────────────────────────────────────────
+working_memory:
+  system_persona: |
+    你是一名精通电子设计自动化（EDA）的资深专家，特别擅长 OpenROAD 开源平台的使用。
+    你的回答需要做到：
+    1. 先解释核心概念，确保初学者能理解问题背景
+    2. 再给出具体的命令用法与参数说明
+    3. 如果涉及代码，给出可直接运行的 Tcl/Shell 示例
+    如果提供的参考资料不足以回答，请坦诚说明并给出你的最佳推测。
+
+  # Prompt 组装拓扑（按顺序拼接）
+  assembly_template: |
+    {system_persona}
+
+    ## 一、核心概念解析（来自 EDA 知识图谱）
+    {base_concepts}
+
+    ## 二、相关实战例题与解答
+    {examples}
+
+    ## 三、工业界参考文档
+    {industrial_docs}
+
+    ## 四、用户问题
+    {question}
+
+    请根据以上信息，给出完整、准确的回答。
+
+# ── 实体抽取 Prompt ───────────────────────────────────────────────────────────
+entity_extraction_prompt: |
+  你是一个 EDA（电子设计自动化）领域的命名实体识别专家。
+  请从下面的问题中提取所有 EDA 相关实体（工具名、命令名、设计阶段、参数、概念术语、文件格式等）。
+
+  输出格式要求（严格 JSON）：
+  {{"entities": ["entity1", "entity2", ...]}}
+
+  只输出 JSON，不要有其他文字。
+
+  问题：{question}
+
+# ── 查询扩展 Prompt ───────────────────────────────────────────────────────────
+query_expansion_prompt: |
+  你是一名 EDA 领域检索专家。给定一个用户原始问题和从知识图谱中检索到的基础概念，
+  请生成一个更精准、更丰富的检索查询，用于在 OpenROAD 工业文档中搜索最相关的内容。
+
+  要求：
+  1. 保留原始问题的核心意图
+  2. 融入基础概念中的专业术语和 API 名称
+  3. 展开缩写和隐含概念
+  4. 生成单一连贯的查询字符串（不超过 200 词）
+
+  原始问题：{question}
+
+  基础概念上下文：
+  {base_context}
+
+  扩展后的检索查询：
+
+# ── 路径 ──────────────────────────────────────────────────────────────────────
+benchmark_path: "benchmarks/ORD-QA/benchmark/ORD-QA.jsonl"
+doc_json_path: "benchmarks/ORD-QA/benchmark/openroad_documentation.json"

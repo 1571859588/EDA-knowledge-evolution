@@ -1,0 +1,87 @@
+# =============================================================================
+# TPMA 配置（与 ours/config.yaml 保持同步）
+# 此处是 eval/ 统一入口的修改点，脚本运行时会 cp 覆盖到 ours/config.yaml
+# =============================================================================
+
+llm:
+  api_base: "${OPENAI_API_BASE:https://api.openai.com/v1}"
+  api_key: "${OPENAI_API_KEY:}"
+  model: "gpt-4o-mini"
+  temperature: 0.0
+  max_tokens: 2048
+
+kg_builder_llm:
+  model: "gpt-4o-mini"
+  temperature: 0.0
+  max_tokens: 4096
+
+embedding:
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"
+  device: "cpu"
+
+reranker:
+  model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+  device: "cpu"
+  score_threshold: 0.3
+  top_k: 5
+
+semantic_memory:
+  kg_path: "ours/knowledge_store/semantic_kg.json"
+  entity_types: [EDA_tool, EDA_command, EDA_stage, EDA_parameter, EDA_concept, EDA_file_format, Tcl_command]
+  relation_types: [BELONGS_TO, USED_IN, HAS_PARAMETER, DEPENDS_ON, EXAMPLE_OF, PREREQUISITE_OF, PRODUCES]
+  max_hops: 2
+
+episodic_memory:
+  index_dir: "ours/knowledge_store/episodic_index"
+  chunk_size: 600
+  chunk_overlap: 80
+
+retrieval:
+  dense_top_k: 20
+  sparse_top_k: 20
+  hybrid_top_k: 20
+  rrf_k: 60
+  alpha: 0.6
+
+working_memory:
+  system_persona: |
+    你是一名精通电子设计自动化（EDA）的资深专家，特别擅长 OpenROAD 开源平台的使用。
+    你的回答需要做到：
+    1. 先解释核心概念，确保初学者能理解问题背景
+    2. 再给出具体的命令用法与参数说明
+    3. 如果涉及代码，给出可直接运行的 Tcl/Shell 示例
+    如果提供的参考资料不足以回答，请坦诚说明并给出你的最佳推测。
+  assembly_template: |
+    {system_persona}
+
+    ## 一、核心概念解析（来自 EDA 知识图谱）
+    {base_concepts}
+
+    ## 二、相关实战例题与解答
+    {examples}
+
+    ## 三、工业界参考文档
+    {industrial_docs}
+
+    ## 四、用户问题
+    {question}
+
+    请根据以上信息，给出完整、准确的回答。
+
+entity_extraction_prompt: |
+  你是一个 EDA（电子设计自动化）领域的命名实体识别专家。
+  请从下面的问题中提取所有 EDA 相关实体。
+  输出格式（严格 JSON）：{{"entities": ["entity1", "entity2", ...]}}
+  只输出 JSON。
+  问题：{question}
+
+query_expansion_prompt: |
+  你是一名 EDA 领域检索专家。给定用户问题和基础概念上下文，
+  请生成一个更精准的检索查询（不超过 200 词）。
+  原始问题：{question}
+  基础概念上下文：
+  {base_context}
+  扩展后的检索查询：
+
+benchmark_path: "benchmarks/ORD-QA/benchmark/ORD-QA.jsonl"
+doc_json_path: "benchmarks/ORD-QA/benchmark/openroad_documentation.json"
